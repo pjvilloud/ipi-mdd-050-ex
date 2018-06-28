@@ -20,6 +20,11 @@ import java.util.Objects;
 @Service
 public class EmployeService {
 
+
+    public static final Integer PAGE_SIZE_MIN = 0;
+    public static final Integer PAGE_SIZE_MAX = 100;
+    public static final Integer PAGE_MIN = 0;
+
     @Autowired
     private EmployeRepository employeRepository;
 
@@ -50,14 +55,27 @@ public class EmployeService {
         return employeRepository.save(e);
     }
 
-    public <T extends Employe> T updateEmploye(Long id, T employe) throws EmployeException {
+    public <T extends Employe> T updateEmploye(Long id, T employe) {
+        if(!employeRepository.exists(id)) {
+            throw new EntityNotFoundException("L'employé d'identifiant " + id + " n'existe pas !");
+        }
         return employeRepository.save(employe);
     }
 
     public Page<Employe> findAllEmployes(Integer page, Integer size, String sortProperty, String sortDirection) {
+        //Vérification du paramètre page
+        if (page == null) {
+            page = PAGE_MIN;
+        } else if(page < 0) {
+            throw new IllegalArgumentException("Le numéro de page ne peut être inférieur à 0");
+        }
         Sort sort = new Sort(new Sort.Order(Sort.Direction.fromString(sortDirection),sortProperty));
         Pageable pageable = new PageRequest(page,size,sort);
-        return employeRepository.findAll(pageable);
+        Page<Employe> employes = employeRepository.findAll(pageable);
+        if(page >= employes.getTotalPages()){
+            throw new IllegalArgumentException("Le numéro de page ne peut être supérieur à " + employes.getTotalPages());
+        }
+        return employes;
     }
 
     public Employe findMyMatricule(String matricule) {
