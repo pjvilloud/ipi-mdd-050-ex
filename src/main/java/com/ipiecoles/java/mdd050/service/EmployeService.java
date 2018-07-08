@@ -29,7 +29,11 @@ public class EmployeService {
     private EmployeRepository employeRepository;
 
     public Employe findById(Long id){
-        return employeRepository.findOne(id);
+        Employe employe = employeRepository.findOne(id);
+        if(employe == null){
+            throw new EntityNotFoundException("L'employé d'identifiant : " + id + " n'a pas été trouvé.");
+        }
+        return employe;
     }
 
     public Long countAllEmploye() {
