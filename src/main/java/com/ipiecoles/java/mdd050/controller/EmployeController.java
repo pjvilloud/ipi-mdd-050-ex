@@ -4,16 +4,12 @@ import com.ipiecoles.java.mdd050.exception.ConflictException;
 import com.ipiecoles.java.mdd050.exception.EmployeException;
 import com.ipiecoles.java.mdd050.model.Employe;
 import com.ipiecoles.java.mdd050.service.EmployeService;
-import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
-import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-
-import javax.persistence.EntityNotFoundException;
 
 @RestController
 @RequestMapping("/employes")
@@ -44,13 +40,14 @@ public class EmployeController {
         return employeService.findById(id);
     }
 
+    /**
+     * Permet de récupérer les informations d'un employé à partir de son matricule
+     * @param matricule Le matricule de l'employé (C00001 ou T00002 ou M00003 par exemple)
+     * @return l'employé si le matricule est trouvé ou une erreur 404 sinon.
+     */
     @RequestMapping(value = "", produces = MediaType.APPLICATION_JSON_UTF8_VALUE, method = RequestMethod.GET, params = "matricule")
     public Employe findByMatricule(@RequestParam("matricule") String matricule){
-        Employe employe =  employeService.findMyMatricule(matricule);
-        if(employe == null){
-            throw new EntityNotFoundException("L'employé de matricule : " + matricule + " n'a pas été trouvé.");
-        }
-        return employe;
+        return employeService.findByMatricule(matricule);
     }
 
     @RequestMapping(value = "", produces = MediaType.APPLICATION_JSON_UTF8_VALUE, method = RequestMethod.GET)

@@ -82,8 +82,12 @@ public class EmployeService {
         return employes;
     }
 
-    public Employe findMyMatricule(String matricule) {
-       return this.employeRepository.findByMatricule(matricule);
+    public Employe findByMatricule(String matricule) {
+        Employe employe =  this.employeRepository.findByMatricule(matricule);
+        if(employe == null){
+            throw new EntityNotFoundException("L'employé de matricule : " + matricule + " n'a pas été trouvé.");
+        }
+        return employe;
     }
 
 }
