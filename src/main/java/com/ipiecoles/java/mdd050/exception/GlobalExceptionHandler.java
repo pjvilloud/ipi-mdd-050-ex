@@ -30,6 +30,12 @@ public class GlobalExceptionHandler {
         return new IpiError(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 
+    /**
+     * Exception lancée notamment par la recherche paginée, lorsqu'on essaye de trier par une propriété qui n'existe pas.
+     *
+     * @param e
+     * @return message d'erreur
+     */
     @ExceptionHandler(PropertyReferenceException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public IpiError handlePropertyReferenceException(PropertyReferenceException e) {

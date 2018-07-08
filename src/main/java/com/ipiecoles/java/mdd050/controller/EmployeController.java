@@ -15,8 +15,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/employes")
 public class EmployeController {
 
-
-
     @Autowired
     private EmployeService employeService;
 
@@ -50,6 +48,15 @@ public class EmployeController {
         return employeService.findByMatricule(matricule);
     }
 
+    /**
+     * Permet de récupérer les employés de manière paginée et triée
+     *
+     * @param page Numéro de la page en partant de 0
+     * @param size Taille de la page
+     * @param sortDirection Tri ascendant ASC ou descendant DESC
+     * @param sortProperty Propriété utilisée par le tri
+     * @return Une page contenant les employés
+     */
     @RequestMapping(value = "", produces = MediaType.APPLICATION_JSON_UTF8_VALUE, method = RequestMethod.GET)
     public Page<Employe> findAll(@RequestParam("page") Integer page, @RequestParam("size") Integer size, @RequestParam("sortDirection") String sortDirection, @RequestParam("sortProperty") String sortProperty){
         return employeService.findAllEmployes(page, size, sortProperty, sortDirection);
