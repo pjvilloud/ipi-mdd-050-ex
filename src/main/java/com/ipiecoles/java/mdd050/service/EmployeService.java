@@ -19,7 +19,7 @@ import java.util.Objects;
 
 @Service
 public class EmployeService {
-    
+
     public static final Integer PAGE_SIZE_MIN = 10;
     public static final Integer PAGE_SIZE_MAX = 100;
     public static final Integer PAGE_MIN = 0;
