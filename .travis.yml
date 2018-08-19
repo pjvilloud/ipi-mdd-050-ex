@@ -1,6 +1,7 @@
 language: java
 jdk:
 - oraclejdk8
+before_deploy: "mvn package && zip mdd050.zip target/*.jar"
 deploy:
   provider: elasticbeanstalk
   access_key_id: $ACCESSKEYID
@@ -8,6 +9,7 @@ deploy:
   region: eu-west-2
   app: mdd-050-api
   env: Mdd050Api-qlf
+  zip_file: mdd050.zip
   bucket_name: elasticbeanstalk-eu-west-2-721501699470
   on:
     repo: pjvilloud/ipi-mdd-050-ex
