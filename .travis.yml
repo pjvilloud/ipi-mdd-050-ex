@@ -3,9 +3,8 @@ jdk:
 - oraclejdk8
 deploy:
   provider: elasticbeanstalk
-  access_key_id: AKIAIAC4T56EDAZAIU3Q
-  secret_access_key:
-    secure: aTiHj/OiPeUoiVdJ+ZPU5KnR4HYZ7COK25QyF44iMFXKQTU7gdsIGHYPQ/zKY01dBeaJABg9Bj56b53wsGg+ScDKn+7dbbcjcLaYG3hLeTLBgikhtNm7LIfMes4Q4jgMbK+7ozcB58q95c5hCHSurniJnJk0iLGWxByJUJxD0p34MIHsJeJsmiZ7biI0Oo4nWrExudTQbaodkcyumTs5G+9K6iXGl0CZ2KBcZ25ZRIU+WTMijmQlhG96xciSwK0GdFgToLyslFhVuFqAZh9mP0w539f+pIXt+mUe9HucNWVe4hL0WvKveZ/A8U6bpo9O2wQ2CLg9wXEW6XWF1J6QYuzmZwqDABvMOTvYibvTi9qXO3WisZ6IseAzuUX+ML9SoWBt4rcwA/aE7okTaXy7WguOBZNhELJ44TH3bWTe9u1fLLbzfxyE6Jol3GQ6wgXvUqR+R6zXInkixS538UYPMm/6kDGkhiYhffDmhpCFp75+4NJ2HKzH212RGqVBGkC7ZoMMa4U1PJMwoDhbOVw9X/qfK8U6rizZ+8+sl0t180lBEE083e3QkHVfUYN9XRtgcoGXzaR6WgQ9MGngHlY9So0TrNjrTk37hXiNa9N0Tx+vyOsDoZnJUxGtLmm6FAW3bG2AcG4taRtpkN5zdk9PuzNJpx2lYitpBOXwLi2zxz4=
+  access_key_id: $ACCESSKEYID
+  secret_access_key: $SECRETACCESSKEY
   region: eu-west-2
   app: mdd-050-api
   env: Mdd050Api-qlf
