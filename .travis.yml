@@ -3,6 +3,7 @@ jdk:
 - oraclejdk8
 before_deploy: "mvn package && zip mdd050.zip target/*.jar"
 deploy:
+  skip_cleanup: true
   provider: elasticbeanstalk
   access_key_id: $ACCESSKEYID
   secret_access_key: $SECRETACCESSKEY
