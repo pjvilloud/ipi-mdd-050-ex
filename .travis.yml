@@ -12,7 +12,4 @@ deploy:
   env: Mdd050Api-qlf
   bucket_name: elasticbeanstalk-eu-west-2-721501699470
   on:
-    repo: pjvilloud/ipi-mdd-050-ex
-    branches:
-      only:
-        - correction
+    branch: correction
