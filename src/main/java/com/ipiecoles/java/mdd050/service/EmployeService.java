@@ -20,8 +20,7 @@ import java.util.Objects;
 @Service
 public class EmployeService {
 
-
-    public static final Integer PAGE_SIZE_MIN = 0;
+    public static final Integer PAGE_SIZE_MIN = 10;
     public static final Integer PAGE_SIZE_MAX = 100;
     public static final Integer PAGE_MIN = 0;
 
@@ -29,7 +28,11 @@ public class EmployeService {
     private EmployeRepository employeRepository;
 
     public Employe findById(Long id){
-        return employeRepository.findOne(id);
+        Employe employe = employeRepository.findOne(id);
+        if(employe == null){
+            throw new EntityNotFoundException("L'employé d'identifiant " + id + " n'a pas été trouvé.");
+        }
+        return employe;
     }
 
     public Long countAllEmploye() {
@@ -69,17 +72,38 @@ public class EmployeService {
         } else if(page < 0) {
             throw new IllegalArgumentException("Le numéro de page ne peut être inférieur à 0");
         }
-        Sort sort = new Sort(new Sort.Order(Sort.Direction.fromString(sortDirection),sortProperty));
+
+        //Vérification du paramètre size
+        if (size == null) {
+            size = PAGE_SIZE_MIN;
+        } else if(size < 0 || size > PAGE_SIZE_MAX) {
+            throw new IllegalArgumentException("La taille de la page doit être comprise entre 1 et " + PAGE_SIZE_MAX);
+        }
+
+        //Vérification du paramètre sortDirection
+        Sort sort = null;
+        try {
+            sort = new Sort(new Sort.Order(Sort.Direction.fromString(sortDirection),sortProperty));
+        }
+        catch (IllegalArgumentException e){
+            throw new IllegalArgumentException("Le sens du tri peut valoir 'ASC' pour un tri ascendant ou 'DESC' pour un tri descendant (insensible à la casse");
+        }
         Pageable pageable = new PageRequest(page,size,sort);
         Page<Employe> employes = employeRepository.findAll(pageable);
         if(page >= employes.getTotalPages()){
             throw new IllegalArgumentException("Le numéro de page ne peut être supérieur à " + employes.getTotalPages());
+        } else if(employes.getTotalElements() == 0){
+            throw new EntityNotFoundException("Il n'y a aucun employés dans la base de données");
         }
         return employes;
     }
 
-    public Employe findMyMatricule(String matricule) {
-       return this.employeRepository.findByMatricule(matricule);
+    public Employe findByMatricule(String matricule) {
+        Employe employe =  this.employeRepository.findByMatricule(matricule);
+        if(employe == null){
+            throw new EntityNotFoundException("L'employé de matricule '" + matricule + "' n'a pas été trouvé.");
+        }
+        return employe;
     }
 
 }
