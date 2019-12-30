@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
+import java.util.Optional;
 
 @Service
 public class ManagerService {
@@ -18,29 +19,30 @@ public class ManagerService {
     private TechnicienRepository technicienRepository;
 
     public void deleteTechniciens(Long idManager, Long idTechnicien) {
-        Manager m = managerRepository.findOne(idManager);
-        if(m == null){
+        Optional<Manager> m = managerRepository.findById(idManager);
+        if(!m.isPresent()){
             throw new EntityNotFoundException("");
         }
-        Technicien t = technicienRepository.findOne(idTechnicien);
-        if(t == null){
+        Manager manager = m.get();
+        Optional<Technicien> t = technicienRepository.findById(idTechnicien);
+        if(!t.isPresent()){
             throw new EntityNotFoundException("");
         }
-
-        if(!m.equals(t.getManager())){
-            throw new IllegalArgumentException("Le technicien " + t.getId() + " n'a pas pour manager le manager " + m.getId());
+        Technicien technicien = t.get();
+        if(!manager.equals(technicien.getManager())){
+            throw new IllegalArgumentException("Le technicien " + technicien.getId() + " n'a pas pour manager le manager " + manager.getId());
         }
 
-        m.getEquipe().remove(t);
-        managerRepository.save(m);
+        manager.getEquipe().remove(technicien);
+        managerRepository.save(manager);
 
-        t.setManager(null);
-        technicienRepository.save(t);
+        technicien.setManager(null);
+        technicienRepository.save(technicien);
     }
 
     public Technicien addTechniciens(Long idManager, String matricule) {
-        Manager m = managerRepository.findOne(idManager);
-        if(m == null){
+        Optional<Manager> m = managerRepository.findById(idManager);
+        if(!m.isPresent()){
             throw new EntityNotFoundException("Impossible de trouver le manager d'identifiant " + idManager);
         }
         Technicien t = technicienRepository.findByMatricule(matricule);
@@ -52,11 +54,12 @@ public class ManagerService {
             throw new IllegalArgumentException("Le technicien de matricule " + matricule + " a déjà un manager : " + t.getManager().getPrenom() + " " + t.getManager().getNom()
                     + " (matricule " + t.getManager().getMatricule() + ")");
         }
+        Manager manager = m.get();
 
-        m.getEquipe().add(t);
-        m = managerRepository.save(m);
+        manager.getEquipe().add(t);
+        manager = managerRepository.save(manager);
 
-        t.setManager(m);
+        t.setManager(manager);
         technicienRepository.save(t);
 
         return t;

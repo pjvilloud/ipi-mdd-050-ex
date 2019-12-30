@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
+import java.util.Optional;
 
 @Service
 public class TechnicienService {
@@ -19,26 +20,27 @@ public class TechnicienService {
     private TechnicienRepository technicienRepository;
 
     public Technicien addManager(Long idTechnicien, String matricule) {
-        Technicien t = technicienRepository.findOne(idTechnicien);
-        if(t == null){
+        Optional<Technicien> t = technicienRepository.findById(idTechnicien);
+        if(!t.isPresent()){
             throw new EntityNotFoundException("Impossible de trouver le technicien d'identifiant " + idTechnicien);
         }
+        Technicien technicien = t.get();
         Manager m = managerRepository.findByMatricule(matricule);
         if(m == null){
             throw new EntityNotFoundException("Impossible de trouver le manager de matricule " + matricule);
         }
 
-        if(t.getManager() != null){
-            throw new IllegalArgumentException("Le technicien a déjà un manager : " + t.getManager().getPrenom() + " " + t.getManager().getNom()
-                    + " (matricule " + t.getManager().getMatricule() + ")");
+        if(technicien.getManager() != null){
+            throw new IllegalArgumentException("Le technicien a déjà un manager : " + technicien.getManager().getPrenom() + " " + technicien.getManager().getNom()
+                    + " (matricule " + technicien.getManager().getMatricule() + ")");
         }
 
-        m.getEquipe().add(t);
+        m.getEquipe().add(technicien);
         m = managerRepository.save(m);
 
-        t.setManager(m);
-        technicienRepository.save(t);
+        technicien.setManager(m);
+        technicien = technicienRepository.save(technicien);
 
-        return t;
+        return technicien;
     }
 }
