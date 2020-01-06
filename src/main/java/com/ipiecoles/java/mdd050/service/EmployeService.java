@@ -3,7 +3,6 @@ package com.ipiecoles.java.mdd050.service;
 import com.ipiecoles.java.mdd050.exception.EmployeException;
 import com.ipiecoles.java.mdd050.model.Employe;
 import com.ipiecoles.java.mdd050.repository.EmployeRepository;
-import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -16,6 +15,7 @@ import org.springframework.stereotype.Service;
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class EmployeService {
@@ -28,11 +28,11 @@ public class EmployeService {
     private EmployeRepository employeRepository;
 
     public Employe findById(Long id){
-        Employe employe = employeRepository.findOne(id);
-        if(employe == null){
+        Optional<Employe> employe = employeRepository.findById(id);
+        if(!employe.isPresent()){
             throw new EntityNotFoundException("L'employé d'identifiant " + id + " n'a pas été trouvé.");
         }
-        return employe;
+        return employe.get();
     }
 
     public Long countAllEmploye() {
@@ -41,7 +41,7 @@ public class EmployeService {
 
     public void deleteEmploye(Long id) throws EmployeException {
         try {
-            employeRepository.delete(id);
+            employeRepository.deleteById(id);
         } catch (DataIntegrityViolationException e){
             //Cas particulier de la suppression d'un manager avec equipe
             if(e.getCause() instanceof ConstraintViolationException) {
@@ -59,7 +59,7 @@ public class EmployeService {
     }
 
     public <T extends Employe> T updateEmploye(Long id, T employe) {
-        if(!employeRepository.exists(id)) {
+        if(!employeRepository.existsById(id)) {
             throw new EntityNotFoundException("L'employé d'identifiant " + id + " n'existe pas !");
         }
         return employeRepository.save(employe);
@@ -83,12 +83,12 @@ public class EmployeService {
         //Vérification du paramètre sortDirection
         Sort sort = null;
         try {
-            sort = new Sort(new Sort.Order(Sort.Direction.fromString(sortDirection),sortProperty));
+            sort = Sort.by(new Sort.Order(Sort.Direction.fromString(sortDirection),sortProperty));
         }
         catch (IllegalArgumentException e){
             throw new IllegalArgumentException("Le sens du tri peut valoir 'ASC' pour un tri ascendant ou 'DESC' pour un tri descendant (insensible à la casse");
         }
-        Pageable pageable = new PageRequest(page,size,sort);
+        Pageable pageable = PageRequest.of(page,size,sort);
         Page<Employe> employes = employeRepository.findAll(pageable);
         if(page >= employes.getTotalPages()){
             throw new IllegalArgumentException("Le numéro de page ne peut être supérieur à " + employes.getTotalPages());
