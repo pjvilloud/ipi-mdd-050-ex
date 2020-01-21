@@ -8,4 +8,4 @@ https://github.com/pjvilloud/ipi-mdd-050-web/releases/download/untagged-2953328f
 Le fichier `index.html` contient toutes les questions à faire pour le TP !
 
 Si besoin d'un dump pour la base de données entreprise : 
-https://github.com/pjvilloud/ipi-java-330-ex/blob/master/src/main/resources/dumpbdd.sql
+`/src/main/resources/dumpbdd.sql`
