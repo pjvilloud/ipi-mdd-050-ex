@@ -5,15 +5,20 @@ import org.joda.time.LocalDate;
 
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 @Entity
 public class Technicien extends Employe implements Comparable<Technicien> {
 
-
 	@ManyToOne
 	private Manager manager;
 
+	@NotNull
+	@Min(1)
+	@Max(5)
 	private Integer grade;
 	
 	public Technicien() {
@@ -47,16 +52,13 @@ public class Technicien extends Employe implements Comparable<Technicien> {
 		return grade;
 	}
 
-	public void setGrade(Integer grade) throws TechnicienException {
-		/*if(grade <= 0 || grade > 5) {
-			throw new TechnicienException(TechnicienException.GRADE, this, grade);
-		}*/
+	public void setGrade(Integer grade) {
 		this.grade = grade;
 	}
 
 	@Override
 	public void setSalaire(Double salaire) {
-		super.setSalaire( salaire * (1 + (double) grade / 10));
+		super.setSalaire( grade != null ? salaire * (1 + (double) grade / 10) : salaire);
 	}
 
 	@Override

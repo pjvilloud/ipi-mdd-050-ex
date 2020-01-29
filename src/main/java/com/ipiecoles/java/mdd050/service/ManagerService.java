@@ -1,16 +1,20 @@
 package com.ipiecoles.java.mdd050.service;
 
+import com.ipiecoles.java.mdd050.model.Entreprise;
 import com.ipiecoles.java.mdd050.model.Manager;
 import com.ipiecoles.java.mdd050.model.Technicien;
 import com.ipiecoles.java.mdd050.repository.ManagerRepository;
 import com.ipiecoles.java.mdd050.repository.TechnicienRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import javax.persistence.EntityNotFoundException;
+import javax.validation.constraints.Pattern;
 import java.util.Optional;
 
 @Service
+@Validated
 public class ManagerService {
     @Autowired
     private ManagerRepository managerRepository;
@@ -33,14 +37,13 @@ public class ManagerService {
             throw new IllegalArgumentException("Le technicien " + technicien.getId() + " n'a pas pour manager le manager " + manager.getId());
         }
 
-        manager.getEquipe().remove(technicien);
-        managerRepository.save(manager);
-
         technicien.setManager(null);
         technicienRepository.save(technicien);
     }
 
-    public Technicien addTechniciens(Long idManager, String matricule) {
+    public Technicien addTechniciens(Long idManager, @Pattern(
+            regexp = Entreprise.REGEX_MATRICULE_TECHNICIEN,
+            message = "doit être M, T ou C suivi de 5 chiffres") String matricule) {
         Optional<Manager> m = managerRepository.findById(idManager);
         if(!m.isPresent()){
             throw new EntityNotFoundException("Impossible de trouver le manager d'identifiant " + idManager);
@@ -55,12 +58,8 @@ public class ManagerService {
                     + " (matricule " + t.getManager().getMatricule() + ")");
         }
         Manager manager = m.get();
-        manager.getEquipe().add(t);
-        manager = managerRepository.save(manager);
 
         t.setManager(manager);
-        technicienRepository.save(t);
-
-        return t;
+        return technicienRepository.save(t);
     }
 }

@@ -3,13 +3,18 @@ package com.ipiecoles.java.mdd050.controller;
 import com.ipiecoles.java.mdd050.exception.ConflictException;
 import com.ipiecoles.java.mdd050.exception.EmployeException;
 import com.ipiecoles.java.mdd050.model.Employe;
+import com.ipiecoles.java.mdd050.model.Entreprise;
 import com.ipiecoles.java.mdd050.service.EmployeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.constraints.Pattern;
 
 @RestController
 @RequestMapping("/employes")
@@ -33,7 +38,7 @@ public class EmployeController {
      * @param id Identifiant technique de l'employé
      * @return l'employé si l'identifiant est trouvé ou une erreur 404 sinon.
      */
-    @RequestMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE, method = RequestMethod.GET)
+    @RequestMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
     public Employe findById(@PathVariable(value = "id") Long id){
         return employeService.findById(id);
     }
@@ -43,7 +48,7 @@ public class EmployeController {
      * @param matricule Le matricule de l'employé (C00001 ou T00002 ou M00003 par exemple)
      * @return l'employé si le matricule est trouvé ou une erreur 404 sinon.
      */
-    @RequestMapping(value = "", produces = MediaType.APPLICATION_JSON_UTF8_VALUE, method = RequestMethod.GET, params = "matricule")
+    @RequestMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET, params = "matricule")
     public Employe findByMatricule(@RequestParam("matricule") String matricule){
         return employeService.findByMatricule(matricule);
     }
@@ -57,22 +62,18 @@ public class EmployeController {
      * @param sortProperty Propriété utilisée par le tri
      * @return Une page contenant les employés
      */
-    @RequestMapping(value = "", produces = MediaType.APPLICATION_JSON_UTF8_VALUE, method = RequestMethod.GET)
-    public Page<Employe> findAll(@RequestParam("page") Integer page, @RequestParam("size") Integer size, @RequestParam("sortDirection") String sortDirection, @RequestParam("sortProperty") String sortProperty){
+    @RequestMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
+    public Page<Employe> findAll(
+            @RequestParam(value = "page", defaultValue = "0") Integer page,
+            @RequestParam(value = "size", defaultValue = "10") Integer size,
+            @RequestParam(value = "sortProperty", defaultValue = "matricule") String sortProperty,
+            @RequestParam(value = "sortDirection", defaultValue = "ASC") Sort.Direction sortDirection){
         return employeService.findAllEmployes(page, size, sortProperty, sortDirection);
     }
 
-    @RequestMapping(method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE, value = "")
+    @RequestMapping(method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, value = "")
     public Employe createEmploye(@RequestBody Employe employe) throws ConflictException {
-        try {
-            return this.employeService.creerEmploye(employe);
-        }
-        catch (DataIntegrityViolationException e){
-            if(e.getMessage().contains("matricule_unique")){
-                throw new ConflictException("L'employé de matricule " + employe.getMatricule() + " existe déjà !");
-            }
-            throw new IllegalArgumentException("Une erreur technique est survenue");
-        }
+        return this.employeService.creerEmploye(employe);
     }
 
     @RequestMapping(method = RequestMethod.PUT, value = "/{id}")
@@ -83,13 +84,7 @@ public class EmployeController {
     @RequestMapping(method = RequestMethod.DELETE, value = "/{id}")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     public void deleteEmploye(@PathVariable("id") Long id) throws EmployeException {
-            this.employeService.deleteEmploye(id);
+        this.employeService.deleteEmploye(id);
     }
-
-    /*@ExceptionHandler(EntityNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String handleEntityNotFoundException(EntityNotFoundException entityNotFoundException) {
-        return "ERREUR !!!";
-    }*/
 
 }

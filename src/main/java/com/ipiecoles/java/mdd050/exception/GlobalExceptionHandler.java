@@ -6,28 +6,35 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.CannotCreateTransactionException;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import javax.persistence.EntityNotFoundException;
+import javax.validation.ConstraintViolationException;
 import java.net.ConnectException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(EntityNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public IpiError handleEntityNotFoundException(EntityNotFoundException entityNotFoundException) {
-        return new IpiError(HttpStatus.NOT_FOUND, entityNotFoundException.getMessage());
+    public String handleEntityNotFoundException(EntityNotFoundException entityNotFoundException) {
+        return entityNotFoundException.getMessage();
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public IpiError handleIllegalArgumentException(IllegalArgumentException e) {
-        return new IpiError(HttpStatus.BAD_REQUEST, e.getMessage());
+    public String handleIllegalArgumentException(IllegalArgumentException e) {
+        return e.getMessage();
     }
 
     /**
@@ -38,20 +45,20 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(PropertyReferenceException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public IpiError handlePropertyReferenceException(PropertyReferenceException e) {
-        return new IpiError(HttpStatus.BAD_REQUEST, "La propriété " + e.getPropertyName() + " n'existe pas !");
+    public String handlePropertyReferenceException(PropertyReferenceException e) {
+        return "La propriété " + e.getPropertyName() + " n'existe pas !";
     }
 
     @ExceptionHandler(EmployeException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public IpiError handleEmployeException(EmployeException e) {
-        return new IpiError(HttpStatus.BAD_REQUEST, e.getMessage());
+    public String handleEmployeException(EmployeException e) {
+        return e.getMessage();
     }
 
     @ExceptionHandler(ConflictException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public IpiError handleConflictException(ConflictException e) {
-        return new IpiError(HttpStatus.CONFLICT, e.getMessage());
+    public String handleConflictException(ConflictException e) {
+        return e.getMessage();
     }
 
 
@@ -67,39 +74,15 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Gestion des méthodes non autorisées
-     *
-     * @param e Exception renvoyée par Spring MVC
-     * @return message d'erreur
-     */
-    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
-    public String handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e){
-        return e.getMessage();
-    }
-
-    /**
-     * Gestion des endpoints inexistants
-     *
-     * @param ex
-     * @return message d'erreur
-     */
-    @ExceptionHandler(NoHandlerFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    protected String handleNoHandlerFoundException(NoHandlerFoundException ex) {
-        return "Pas de endpoint trouvé pour la méthode HTTP " + ex.getHttpMethod() + " et l'url " + ex.getRequestURL();
-    }
-
-    /**
      * Gestion des problèmes de types sur les paramètres
      *
      * @param ex
      * @return message d'erreur
      */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    protected IpiError handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex) {
-        return new IpiError(HttpStatus.NOT_FOUND,"Le type du paramètre " + ex.getName() + " est incorrect pour la valeur '" + ex.getValue() + "'");
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    protected String handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex) {
+        return "Le type du paramètre " + ex.getName() + " est incorrect pour la valeur '" + ex.getValue() + "'";
     }
 
 
@@ -111,7 +94,25 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(CannotCreateTransactionException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    protected IpiError handleConnectException(CannotCreateTransactionException ex) {
-        return new IpiError(HttpStatus.INTERNAL_SERVER_ERROR,"Problème de connexion à la base de données");
+    protected String handleConnectException(CannotCreateTransactionException ex) {
+        return "Problème de connexion à la base de données";
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String handleConstraintViolationException(ConstraintViolationException e){
+        return e.getConstraintViolations().stream().map(constraintViolation -> {
+                    String path = constraintViolation.getPropertyPath().toString();
+                    return path.substring(path.lastIndexOf(".")+1) + " : " + constraintViolation.getMessage();
+                }).collect(Collectors.joining(", "));
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+        return new ResponseEntity<Object>(ex.getBindingResult().getAllErrors().stream()
+                .map(objectError -> objectError.getDefaultMessage())
+                .collect(Collectors.joining(", ")),
+                HttpStatus.BAD_REQUEST);
+
     }
 }

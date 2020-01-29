@@ -1,25 +1,29 @@
 package com.ipiecoles.java.mdd050.model;
 
+import com.ipiecoles.java.mdd050.validator.InList;
 import org.joda.time.LocalDate;
 
 import javax.persistence.Entity;
+import javax.validation.constraints.PositiveOrZero;
 
 @Entity
 public class Commercial extends Employe {
-
+	public static final String PERFORMANCES = "0,50,100,150,200";
 
 	private static final long serialVersionUID = 5415800951599717353L;
 
+	@PositiveOrZero
 	private Double caAnnuel = 0d;
 
+	@InList(list = PERFORMANCES, message = "ne fait pas partie des valeurs admises : " + PERFORMANCES)
 	private Integer performance;
 
 	public Commercial() {
-		
+
 	}
-	
+
 	public Commercial(String nom, String prenom, String matricule, LocalDate dateEmbauche, Double salaire,
-			Double caAnnuel) {
+					  Double caAnnuel) {
 		super(nom, prenom, matricule, dateEmbauche, salaire);
 		this.caAnnuel = caAnnuel;
 	}

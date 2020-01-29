@@ -2,10 +2,12 @@ package com.ipiecoles.java.mdd050.model;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.ipiecoles.java.mdd050.validator.Salaire;
 import org.hibernate.annotations.Type;
 import org.joda.time.LocalDate;
 
 import javax.persistence.*;
+import javax.validation.constraints.*;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -17,28 +19,36 @@ import java.util.Objects;
 		@JsonSubTypes.Type(value = Manager.class, name = "manager")})
 public abstract class Employe implements Serializable {
 
-
 	private static final long serialVersionUID = -633481376872387016L;
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	@NotBlank
+	@Size(max = 50)
 	private String nom;
-	
+
+	@NotBlank
+	@Size(max = 50)
 	private String prenom;
 
+	@Pattern(regexp = Entreprise.REGEX_MATRICULE,
+			message = "doit être M, T ou C suivi de 5 chiffres")
 	private String matricule;
 
 	@Type(type = "org.jadira.usertype.dateandtime.joda.PersistentLocalDate")
+	@PastOrPresent
+	@NotNull
 	private LocalDate dateEmbauche;
-	
+
+	@Salaire
 	private Double salaire = Entreprise.SALAIRE_BASE;
-	
+
 	public Employe() {
-		
+
 	}
-	
+
 	public Employe(String nom, String prenom, String matricule, LocalDate dateEmbauche, Double salaire) {
 		this.nom = nom;
 		this.prenom = prenom;
@@ -48,13 +58,13 @@ public abstract class Employe implements Serializable {
 	}
 
 	public final Integer getNombreAnneeAnciennete() {
-		return LocalDate.now().getYear() - dateEmbauche.getYear();
+		return dateEmbauche != null ? LocalDate.now().getYear() - dateEmbauche.getYear() : 0;
 	}
-	
+
 	public Integer getNbConges() {
 		return Entreprise.NB_CONGES_BASE;
 	}
-	
+
 	public abstract Double getPrimeAnnuelle();
 
 	public void augmenterSalaire(Double pourcentage) {
@@ -120,12 +130,8 @@ public abstract class Employe implements Serializable {
 
 	/**
 	 * @param dateEmbauche the dateEmbauche to set
-	 * @throws Exception 
 	 */
-	public void setDateEmbauche(LocalDate dateEmbauche) throws Exception {
-		/*if(dateEmbauche != null && dateEmbauche.isAfter(LocalDate.now())) {
-			throw new Exception("La date d'embauche ne peut être postérieure à la date courante");
-		}*/
+	public void setDateEmbauche(LocalDate dateEmbauche) {
 		this.dateEmbauche = dateEmbauche;
 	}
 
@@ -135,7 +141,7 @@ public abstract class Employe implements Serializable {
 	public Double getSalaire() {
 		return salaire;
 	}
-	
+
 	/**
 	 * @param salaire the salaire to set
 	 */

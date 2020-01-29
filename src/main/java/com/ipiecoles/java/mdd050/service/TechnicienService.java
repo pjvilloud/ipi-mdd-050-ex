@@ -1,16 +1,20 @@
 package com.ipiecoles.java.mdd050.service;
 
+import com.ipiecoles.java.mdd050.model.Entreprise;
 import com.ipiecoles.java.mdd050.model.Manager;
 import com.ipiecoles.java.mdd050.model.Technicien;
 import com.ipiecoles.java.mdd050.repository.ManagerRepository;
 import com.ipiecoles.java.mdd050.repository.TechnicienRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import javax.persistence.EntityNotFoundException;
+import javax.validation.constraints.Pattern;
 import java.util.Optional;
 
 @Service
+@Validated
 public class TechnicienService {
 
     @Autowired
@@ -19,7 +23,9 @@ public class TechnicienService {
     @Autowired
     private TechnicienRepository technicienRepository;
 
-    public Technicien addManager(Long idTechnicien, String matricule) {
+    public Technicien addManager(Long idTechnicien,
+                                 @Pattern(regexp = Entreprise.REGEX_MATRICULE_MANAGER,
+                                         message = "doit être M, T ou C suivi de 5 chiffres") String matricule) {
         Optional<Technicien> t = technicienRepository.findById(idTechnicien);
         if(!t.isPresent()){
             throw new EntityNotFoundException("Impossible de trouver le technicien d'identifiant " + idTechnicien);
@@ -34,12 +40,8 @@ public class TechnicienService {
                     + " (matricule " + technicien.getManager().getMatricule() + ")");
         }
 
-        m.getEquipe().add(technicien);
-        m = managerRepository.save(m);
-
         technicien.setManager(m);
-        technicien = technicienRepository.save(technicien);
 
-        return technicien;
+        return technicienRepository.save(technicien);
     }
 }
